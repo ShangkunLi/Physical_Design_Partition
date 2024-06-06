@@ -1,3 +1,0 @@
-/home/x3/shangkun-li/Course_Project/Digital_EDA/Physical_Design_Partition/build/CMakeFiles/rebuild_cache.dir
-/home/x3/shangkun-li/Course_Project/Digital_EDA/Physical_Design_Partition/build/CMakeFiles/edit_cache.dir
-/home/x3/shangkun-li/Course_Project/Digital_EDA/Physical_Design_Partition/build/CMakeFiles/Partition.dir
