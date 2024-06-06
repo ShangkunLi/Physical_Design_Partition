@@ -1,14 +1,14 @@
 #include "FMPartition.h"
 #include <limits>
 
-void Partition::OneSwap(Bucket &bu, NodeArray &nodearray_local, NodeArray &nodearray_global, int currentBest)
+void Partition::OneSwap(Bucket &bkt, NodeArray &nodearray_local, NodeArray &nodearray_global, int currentBest)
 {
 	int record = std::numeric_limits<int>::max();
 	for (int loop = 0; loop < nodearray_local.data_array.size() / 2; loop++)
 	{
 		int Areplace, Breplace;
 		// select a vertex with maximal gain in A
-		Areplace = bu.maxGain(A_PART, nodearray_local);
+		Areplace = bkt.maxGain(A_PART, nodearray_local);
 		// move to B
 		nodearray_local.data_array[Areplace]->Node_status = FIXED;
 		nodearray_local.data_array[Areplace]->Node_part = B_PART;
@@ -16,28 +16,28 @@ void Partition::OneSwap(Bucket &bu, NodeArray &nodearray_local, NodeArray &nodea
 		int prevGain, updateGain;
 		prevGain = nodearray_local.data_array[Areplace]->Node_gain;
 		updateGain = nodearray_local.updateGain(Areplace);
-		bu.updateExchange(A_PART, Areplace, updateGain, prevGain);
+		bkt.ChangeBetweenPart(A_PART, Areplace, updateGain, prevGain);
 		for (int i = 0; i < nodearray_local.data_array[Areplace]->Node_connect.size(); i++)
 		{
 			prevGain = nodearray_local.data_array[nodearray_local.data_array[Areplace]->Node_connect[i]]->Node_gain;
 			updateGain = nodearray_local.updateGain(nodearray_local.data_array[Areplace]->Node_connect[i]);
-			bu.updateLocal(nodearray_local.data_array[nodearray_local.data_array[Areplace]->Node_connect[i]]->Node_part, nodearray_local.data_array[Areplace]->Node_connect[i], updateGain, prevGain);
+			bkt.ChangeWithinPart(nodearray_local.data_array[nodearray_local.data_array[Areplace]->Node_connect[i]]->Node_part, nodearray_local.data_array[Areplace]->Node_connect[i], updateGain, prevGain);
 		}
 
 		// select a vertex with maximal gain in B
-		Breplace = bu.maxGain(B_PART, nodearray_local);
+		Breplace = bkt.maxGain(B_PART, nodearray_local);
 		// move to A
 		nodearray_local.data_array[Breplace]->Node_status = FIXED;
 		nodearray_local.data_array[Breplace]->Node_part = A_PART;
 		// update gains
 		prevGain = nodearray_local.data_array[Breplace]->Node_gain;
 		updateGain = nodearray_local.updateGain(Breplace);
-		bu.updateExchange(B_PART, Breplace, updateGain, prevGain);
+		bkt.ChangeBetweenPart(B_PART, Breplace, updateGain, prevGain);
 		for (int i = 0; i < nodearray_local.data_array[Breplace]->Node_connect.size(); i++)
 		{
 			prevGain = nodearray_local.data_array[nodearray_local.data_array[Breplace]->Node_connect[i]]->Node_gain;
 			updateGain = nodearray_local.updateGain(nodearray_local.data_array[Breplace]->Node_connect[i]);
-			bu.updateLocal(nodearray_local.data_array[nodearray_local.data_array[Breplace]->Node_connect[i]]->Node_part, nodearray_local.data_array[Breplace]->Node_connect[i], updateGain, prevGain);
+			bkt.ChangeWithinPart(nodearray_local.data_array[nodearray_local.data_array[Breplace]->Node_connect[i]]->Node_part, nodearray_local.data_array[Breplace]->Node_connect[i], updateGain, prevGain);
 		}
 		// record the gain
 		if (nodearray_local.cutSize() < record && nodearray_local.cutSize() < currentBest)
@@ -56,17 +56,20 @@ std::vector<std::vector<int>> Partition::FMPartition(std::vector<std::vector<int
 	std::vector<int> tpB;
 	NodeArray nodearray_global(graph);
 	int currentBest = std::numeric_limits<int>::max();
+
 	nodearray_global.init_half();
 	// nodearray_global.init_even();
+	// nodearray_global.init_rand();
+
 	nodearray_global.updateGain();
 	for (int loop = 0; loop < MaxIteration; loop++)
 	{
 		int flag = 0;
-		Bucket bu;
+		Bucket bkt;
 		NodeArray nodearray_local;
 		nodearray_local.copy(nodearray_global);
-		bu.load(nodearray_local);
-		OneSwap(bu, nodearray_local, nodearray_global, currentBest);
+		bkt.load(nodearray_local);
+		OneSwap(bkt, nodearray_local, nodearray_global, currentBest);
 		if (currentBest > nodearray_global.cutSize())
 		{
 			currentBest = nodearray_global.cutSize();
@@ -116,7 +119,7 @@ std::vector<std::vector<int>> Partition::FMPartitionRandPoint(std::vector<std::v
 	std::vector<std::vector<int>> partition;
 	std::vector<int> tpA;
 	std::vector<int> tpB;
-	for (int l = 0; l < 5; l++)
+	for (int l = 0; l < 10; l++)
 	{
 		NodeArray nodearray_global(graph);
 
@@ -129,12 +132,12 @@ std::vector<std::vector<int>> Partition::FMPartitionRandPoint(std::vector<std::v
 		for (int loop = 0; loop < MaxIteration; loop++)
 		{
 			int flag = 0;
-			Bucket bu;
+			Bucket bkt;
 			NodeArray nodearray_local;
 			nodearray_local.copy(nodearray_global);
 
-			bu.load(nodearray_local);
-			OneSwap(bu, nodearray_local, nodearray_global, currentBest);
+			bkt.load(nodearray_local);
+			OneSwap(bkt, nodearray_local, nodearray_global, currentBest);
 			if (currentBest > nodearray_global.cutSize())
 			{
 				currentBest = nodearray_global.cutSize();

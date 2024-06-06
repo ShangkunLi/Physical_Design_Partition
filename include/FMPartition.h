@@ -7,7 +7,7 @@
 class Partition
 {
 public:
-	void OneSwap(Bucket &bu, NodeArray &nodearray_local, NodeArray &nodearray_global, int currentBest);
+	void OneSwap(Bucket &bkt, NodeArray &nodearray_local, NodeArray &nodearray_global, int currentBest);
 	std::vector<std::vector<int>> FMPartition(std::vector<std::vector<int>> &graph);
 	std::vector<std::vector<int>> FMPartitionRandPoint(std::vector<std::vector<int>> &graph);
 	int mincutsize;

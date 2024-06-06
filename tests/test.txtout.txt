@@ -1,5 +1,0 @@
-partition size: 3: 
-0 2 3 
-partition size: 2: 
-1 4 
-cut size: 2

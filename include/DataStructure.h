@@ -228,20 +228,18 @@ public:
 class Bucket
 {
 public:
-	std::map<int, BucketNode *, std::greater<int>> bucketAtoB;
-	std::map<int, BucketNode *, std::greater<int>> bucketBtoA;
+	std::map<int, BucketNode *, std::greater<int>> BucketAtoB;
+	std::map<int, BucketNode *, std::greater<int>> BucketBtoA;
 
-	Bucket()
+	Bucket(){}
+	void load(NodeArray &narr)
 	{
-	}
-	void load(NodeArray &parr)
-	{
-		for (int i = 0; i < parr.data_array.size(); i++)
+		for (int i = 0; i < narr.data_array.size(); i++)
 		{
-			if (parr.data_array[i]->Node_part == A_PART)
+			if (narr.data_array[i]->Node_part == A_PART)
 			{
-				auto iter = bucketAtoB.find(parr.data_array[i]->Node_gain);
-				if (iter != bucketAtoB.end())
+				auto iter = BucketAtoB.find(narr.data_array[i]->Node_gain);
+				if (iter != BucketAtoB.end())
 				{
 					BucketNode *temp = iter->second;
 					BucketNode *insert = iter->second;
@@ -249,19 +247,19 @@ public:
 					{
 						insert = temp;
 					}
-					insert->next = new BucketNode(parr.data_array[i]->Node_index, NULL, insert);
+					insert->next = new BucketNode(narr.data_array[i]->Node_index, NULL, insert);
 				}
-				else if (iter == bucketAtoB.end())
+				else if (iter == BucketAtoB.end())
 				{
 					BucketNode *head = new BucketNode(-1, NULL, NULL);
-					bucketAtoB.insert(std::pair<int, BucketNode *>(parr.data_array[i]->Node_gain, head));
-					head->next = new BucketNode(parr.data_array[i]->Node_index, NULL, head);
+					BucketAtoB.insert(std::pair<int, BucketNode *>(narr.data_array[i]->Node_gain, head));
+					head->next = new BucketNode(narr.data_array[i]->Node_index, NULL, head);
 				}
 			}
-			if (parr.data_array[i]->Node_part == B_PART)
+			if (narr.data_array[i]->Node_part == B_PART)
 			{
-				auto iter = bucketBtoA.find(parr.data_array[i]->Node_gain);
-				if (iter != bucketBtoA.end())
+				auto iter = BucketBtoA.find(narr.data_array[i]->Node_gain);
+				if (iter != BucketBtoA.end())
 				{
 					BucketNode *temp = iter->second;
 					BucketNode *insert = iter->second;
@@ -269,29 +267,29 @@ public:
 					{
 						insert = temp;
 					}
-					insert->next = new BucketNode(parr.data_array[i]->Node_index, NULL, insert);
+					insert->next = new BucketNode(narr.data_array[i]->Node_index, NULL, insert);
 				}
-				else if (iter == bucketBtoA.end())
+				else if (iter == BucketBtoA.end())
 				{
 					BucketNode *head = new BucketNode(-1, NULL, NULL);
-					bucketBtoA.insert(std::pair<int, BucketNode *>(parr.data_array[i]->Node_gain, head));
-					head->next = new BucketNode(parr.data_array[i]->Node_index, NULL, head);
+					BucketBtoA.insert(std::pair<int, BucketNode *>(narr.data_array[i]->Node_gain, head));
+					head->next = new BucketNode(narr.data_array[i]->Node_index, NULL, head);
 				}
 			}
 		}
 	}
-	int maxGain(NODE_PART partition, NodeArray &parr)
+	int maxGain(NODE_PART partition, NodeArray &narr)
 	{
 		if (partition == A_PART)
 		{
-			for (auto iter = bucketAtoB.begin(); iter != bucketAtoB.end(); iter++)
+			for (auto iter = BucketAtoB.begin(); iter != BucketAtoB.end(); iter++)
 			{
 				BucketNode *temp;
 				for (temp = iter->second; temp != NULL; temp = temp->next)
 				{
 					if (temp->index > -1)
 					{
-						if (parr.data_array[temp->index]->Node_status == FREE)
+						if (narr.data_array[temp->index]->Node_status == FREE)
 						{
 							return temp->index;
 						}
@@ -301,14 +299,14 @@ public:
 		}
 		else if (partition == B_PART)
 		{
-			for (auto iter = bucketBtoA.begin(); iter != bucketBtoA.end(); iter++)
+			for (auto iter = BucketBtoA.begin(); iter != BucketBtoA.end(); iter++)
 			{
 				BucketNode *temp;
 				for (temp = iter->second; temp != NULL; temp = temp->next)
 				{
 					if (temp->index > -1)
 					{
-						if (parr.data_array[temp->index]->Node_status == FREE)
+						if (narr.data_array[temp->index]->Node_status == FREE)
 						{
 							return temp->index;
 						}
@@ -317,11 +315,11 @@ public:
 			}
 		}
 	}
-	void updateExchange(NODE_PART partition, int i, int updateGain, int prevGain)
+	void ChangeBetweenPart(NODE_PART partition, int i, int updateGain, int prevGain)
 	{
 		if (partition == A_PART)
 		{
-			auto iter = bucketAtoB.find(prevGain);
+			auto iter = BucketAtoB.find(prevGain);
 			BucketNode *temp = iter->second;
 			for (temp = iter->second; temp != NULL; temp = temp->next)
 			{
@@ -344,8 +342,8 @@ public:
 				temp->prev = NULL;
 			}
 			// add temp to bucket B
-			auto iter0 = bucketBtoA.find(updateGain);
-			if (iter0 != bucketBtoA.end())
+			auto iter0 = BucketBtoA.find(updateGain);
+			if (iter0 != BucketBtoA.end())
 			{
 				BucketNode *temp0 = iter0->second;
 				BucketNode *insert0 = iter0->second;
@@ -356,17 +354,17 @@ public:
 				insert0->next = temp;
 				temp->prev = insert0;
 			}
-			else if (iter0 == bucketBtoA.end())
+			else if (iter0 == BucketBtoA.end())
 			{
 				BucketNode *head = new BucketNode(-1, NULL, NULL);
-				bucketBtoA.insert(std::pair<int, BucketNode *>(updateGain, head));
+				BucketBtoA.insert(std::pair<int, BucketNode *>(updateGain, head));
 				head->next = temp;
 				temp->prev = head;
 			}
 		}
 		else if (partition == B_PART)
 		{
-			auto iter = bucketBtoA.find(prevGain);
+			auto iter = BucketBtoA.find(prevGain);
 			BucketNode *temp = iter->second;
 			for (temp = iter->second; temp != NULL; temp = temp->next)
 			{
@@ -389,8 +387,8 @@ public:
 				temp->prev = NULL;
 			}
 			// add temp to bucket A
-			auto iter0 = bucketAtoB.find(updateGain);
-			if (iter0 != bucketAtoB.end())
+			auto iter0 = BucketAtoB.find(updateGain);
+			if (iter0 != BucketAtoB.end())
 			{
 				BucketNode *temp0 = iter0->second;
 				BucketNode *insert0 = iter0->second;
@@ -401,20 +399,20 @@ public:
 				insert0->next = temp;
 				temp->prev = insert0;
 			}
-			else if (iter0 == bucketAtoB.end())
+			else if (iter0 == BucketAtoB.end())
 			{
 				BucketNode *head = new BucketNode(-1, NULL, NULL);
-				bucketAtoB.insert(std::pair<int, BucketNode *>(updateGain, head));
+				BucketAtoB.insert(std::pair<int, BucketNode *>(updateGain, head));
 				head->next = temp;
 				temp->prev = head;
 			}
 		}
 	}
-	void updateLocal(NODE_PART partition, int i, int updateGain, int prevGain)
+	void ChangeWithinPart(NODE_PART partition, int i, int updateGain, int prevGain)
 	{
 		if (partition == A_PART)
 		{
-			auto iter = bucketAtoB.find(prevGain);
+			auto iter = BucketAtoB.find(prevGain);
 			BucketNode *temp = iter->second;
 			for (temp = iter->second; temp != NULL; temp = temp->next)
 			{
@@ -436,9 +434,9 @@ public:
 				temp->next = NULL;
 				temp->prev = NULL;
 			}
-			// add temp to bucket A
-			auto iter0 = bucketAtoB.find(updateGain);
-			if (iter0 != bucketAtoB.end())
+			// add temp to bucket B
+			auto iter0 = BucketAtoB.find(updateGain);
+			if (iter0 != BucketAtoB.end())
 			{
 				BucketNode *temp0 = iter0->second;
 				BucketNode *insert0 = iter0->second;
@@ -449,17 +447,17 @@ public:
 				insert0->next = temp;
 				temp->prev = insert0;
 			}
-			else if (iter0 == bucketAtoB.end())
+			else if (iter0 == BucketAtoB.end())
 			{
 				BucketNode *head = new BucketNode(-1, NULL, NULL);
-				bucketAtoB.insert(std::pair<int, BucketNode *>(updateGain, head));
+				BucketAtoB.insert(std::pair<int, BucketNode *>(updateGain, head));
 				head->next = temp;
 				temp->prev = head;
 			}
 		}
 		else if (partition == B_PART)
 		{
-			auto iter = bucketBtoA.find(prevGain);
+			auto iter = BucketBtoA.find(prevGain);
 			BucketNode *temp = iter->second;
 			for (temp = iter->second; temp != NULL; temp = temp->next)
 			{
@@ -482,8 +480,8 @@ public:
 				temp->prev = NULL;
 			}
 			// add temp to bucket B
-			auto iter0 = bucketBtoA.find(updateGain);
-			if (iter0 != bucketBtoA.end())
+			auto iter0 = BucketBtoA.find(updateGain);
+			if (iter0 != BucketBtoA.end())
 			{
 				BucketNode *temp0 = iter0->second;
 				BucketNode *insert0 = iter0->second;
@@ -494,10 +492,10 @@ public:
 				insert0->next = temp;
 				temp->prev = insert0;
 			}
-			else if (iter0 == bucketBtoA.end())
+			else if (iter0 == BucketBtoA.end())
 			{
 				BucketNode *head = new BucketNode(-1, NULL, NULL);
-				bucketBtoA.insert(std::pair<int, BucketNode *>(updateGain, head));
+				BucketBtoA.insert(std::pair<int, BucketNode *>(updateGain, head));
 				head->next = temp;
 				temp->prev = head;
 			}
