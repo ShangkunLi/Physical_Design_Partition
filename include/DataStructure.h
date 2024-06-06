@@ -58,35 +58,34 @@ public:
 	}
 };
 
-class POINTER_ARRAY
+class NodeArray
 {
 public:
 	std::vector<NODE *> data_array;
 
-	POINTER_ARRAY()
+	NodeArray() {}
+
+	NodeArray(std::vector<std::vector<int>> &graph)
 	{
-	}
-	POINTER_ARRAY(std::vector<std::vector<int>> &modules)
-	{
-		for (int i = 0; i < modules.size(); i++)
+		for (int i = 0; i < graph.size(); i++)
 		{
-			data_array.push_back(new NODE(i, modules[i]));
+			data_array.push_back(new NODE(i, graph[i]));
 		}
 	}
-	void copy(POINTER_ARRAY pa)
+	void copy(NodeArray na)
 	{
-		for (int i = 0; i < pa.data_array.size(); i++)
+		for (int i = 0; i < na.data_array.size(); i++)
 		{
-			this->data_array.push_back(new NODE(pa.data_array[i]->Node_index, pa.data_array[i]->Node_part, pa.data_array[i]->Node_status, pa.data_array[i]->Node_gain, pa.data_array[i]->Node_connect));
+			this->data_array.push_back(new NODE(na.data_array[i]->Node_index, na.data_array[i]->Node_part, na.data_array[i]->Node_status, na.data_array[i]->Node_gain, na.data_array[i]->Node_connect));
 		}
 	}
-	void reset(POINTER_ARRAY pa)
+	void reset(NodeArray na)
 	{
-		for (int i = 0; i < pa.data_array.size(); i++)
+		for (int i = 0; i < na.data_array.size(); i++)
 		{
-			data_array[i]->Node_status = pa.data_array[i]->Node_status;
-			data_array[i]->Node_gain = pa.data_array[i]->Node_index;
-			data_array[i]->Node_part = pa.data_array[i]->Node_part;
+			data_array[i]->Node_status = na.data_array[i]->Node_status;
+			data_array[i]->Node_gain = na.data_array[i]->Node_index;
+			data_array[i]->Node_part = na.data_array[i]->Node_part;
 		}
 	}
 	void recover()
@@ -130,11 +129,11 @@ public:
 		rd.seed(time(0));
 		for (int i = 0; i < data_array.size(); i++)
 		{
-			if (a_num == 1000)
+			if (a_num == data_array.size() / 2)
 			{
 				data_array[i]->Node_part = B_PART;
 			}
-			else if (b_num == 1000)
+			else if (b_num == data_array.size() / 2)
 			{
 				data_array[i]->Node_part = A_PART;
 			}
@@ -190,6 +189,7 @@ public:
 		data_array[i]->Node_gain = external - internal;
 		return data_array[i]->Node_gain;
 	}
+
 	int cutSize()
 	{
 		int cutsize = 0;
@@ -234,7 +234,7 @@ public:
 	Bucket()
 	{
 	}
-	void load(POINTER_ARRAY &parr)
+	void load(NodeArray &parr)
 	{
 		for (int i = 0; i < parr.data_array.size(); i++)
 		{
@@ -280,7 +280,7 @@ public:
 			}
 		}
 	}
-	int maxGain(NODE_PART partition, POINTER_ARRAY &parr)
+	int maxGain(NODE_PART partition, NodeArray &parr)
 	{
 		if (partition == A_PART)
 		{

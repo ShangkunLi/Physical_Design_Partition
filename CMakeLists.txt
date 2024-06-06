@@ -9,7 +9,6 @@ set(SOURCES
     src/FMPartition.cpp
     src/parser.cpp
     src/main.cpp
-    src/PhysicalDesign.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

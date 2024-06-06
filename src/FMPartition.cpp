@@ -1,94 +1,107 @@
-#include"FMPartition.h"
-#include<limits>
+#include "FMPartition.h"
+#include <limits>
 
-void Partition::OneSwap(Bucket& bu,POINTER_ARRAY& pointer_array_local,POINTER_ARRAY& pointer_array_global,int currentBest) {
+void Partition::OneSwap(Bucket &bu, NodeArray &nodearray_local, NodeArray &nodearray_global, int currentBest)
+{
 	int record = std::numeric_limits<int>::max();
-	for (int loop = 0;loop < pointer_array_local.data_array.size() / 2;loop++) {
+	for (int loop = 0; loop < nodearray_local.data_array.size() / 2; loop++)
+	{
 		int Areplace, Breplace;
-		//select a vertex with maximal gain in A
-		Areplace = bu.maxGain(A_PART, pointer_array_local);
-		//move to B
-		pointer_array_local.data_array[Areplace]->Node_status = FIXED;
-		pointer_array_local.data_array[Areplace]->Node_part = B_PART;
-		//update gains
+		// select a vertex with maximal gain in A
+		Areplace = bu.maxGain(A_PART, nodearray_local);
+		// move to B
+		nodearray_local.data_array[Areplace]->Node_status = FIXED;
+		nodearray_local.data_array[Areplace]->Node_part = B_PART;
+		// update gains
 		int prevGain, updateGain;
-		prevGain = pointer_array_local.data_array[Areplace]->Node_gain;
-		updateGain = pointer_array_local.updateGain(Areplace);
+		prevGain = nodearray_local.data_array[Areplace]->Node_gain;
+		updateGain = nodearray_local.updateGain(Areplace);
 		bu.updateExchange(A_PART, Areplace, updateGain, prevGain);
-		for (int i = 0;i < pointer_array_local.data_array[Areplace]->Node_connect.size();i++) {
-			prevGain = pointer_array_local.data_array[pointer_array_local.data_array[Areplace]->Node_connect[i]]->Node_gain;
-			updateGain = pointer_array_local.updateGain(pointer_array_local.data_array[Areplace]->Node_connect[i]);
-			bu.updateLocal(pointer_array_local.data_array[pointer_array_local.data_array[Areplace]->Node_connect[i]]->Node_part, pointer_array_local.data_array[Areplace]->Node_connect[i], updateGain, prevGain);
+		for (int i = 0; i < nodearray_local.data_array[Areplace]->Node_connect.size(); i++)
+		{
+			prevGain = nodearray_local.data_array[nodearray_local.data_array[Areplace]->Node_connect[i]]->Node_gain;
+			updateGain = nodearray_local.updateGain(nodearray_local.data_array[Areplace]->Node_connect[i]);
+			bu.updateLocal(nodearray_local.data_array[nodearray_local.data_array[Areplace]->Node_connect[i]]->Node_part, nodearray_local.data_array[Areplace]->Node_connect[i], updateGain, prevGain);
 		}
 
-		//select a vertex with maximal gain in B
-		Breplace = bu.maxGain(B_PART, pointer_array_local);
-		//move to A
-		pointer_array_local.data_array[Breplace]->Node_status = FIXED;
-		pointer_array_local.data_array[Breplace]->Node_part = A_PART;
-		//update gains
-		prevGain = pointer_array_local.data_array[Breplace]->Node_gain;
-		updateGain = pointer_array_local.updateGain(Breplace);
+		// select a vertex with maximal gain in B
+		Breplace = bu.maxGain(B_PART, nodearray_local);
+		// move to A
+		nodearray_local.data_array[Breplace]->Node_status = FIXED;
+		nodearray_local.data_array[Breplace]->Node_part = A_PART;
+		// update gains
+		prevGain = nodearray_local.data_array[Breplace]->Node_gain;
+		updateGain = nodearray_local.updateGain(Breplace);
 		bu.updateExchange(B_PART, Breplace, updateGain, prevGain);
-		for (int i = 0;i < pointer_array_local.data_array[Breplace]->Node_connect.size();i++) {
-			prevGain = pointer_array_local.data_array[pointer_array_local.data_array[Breplace]->Node_connect[i]]->Node_gain;
-			updateGain = pointer_array_local.updateGain(pointer_array_local.data_array[Breplace]->Node_connect[i]);
-			bu.updateLocal(pointer_array_local.data_array[pointer_array_local.data_array[Breplace]->Node_connect[i]]->Node_part, pointer_array_local.data_array[Breplace]->Node_connect[i], updateGain, prevGain);
+		for (int i = 0; i < nodearray_local.data_array[Breplace]->Node_connect.size(); i++)
+		{
+			prevGain = nodearray_local.data_array[nodearray_local.data_array[Breplace]->Node_connect[i]]->Node_gain;
+			updateGain = nodearray_local.updateGain(nodearray_local.data_array[Breplace]->Node_connect[i]);
+			bu.updateLocal(nodearray_local.data_array[nodearray_local.data_array[Breplace]->Node_connect[i]]->Node_part, nodearray_local.data_array[Breplace]->Node_connect[i], updateGain, prevGain);
 		}
-		//record the gain
-		if (pointer_array_local.cutSize() < record&& pointer_array_local.cutSize()<currentBest) {
-			record = pointer_array_local.cutSize();
-			pointer_array_global.reset(pointer_array_local);
+		// record the gain
+		if (nodearray_local.cutSize() < record && nodearray_local.cutSize() < currentBest)
+		{
+			record = nodearray_local.cutSize();
+			nodearray_global.reset(nodearray_local);
 		}
 	}
-	pointer_array_global.recover();
-
+	nodearray_global.recover();
 }
 
-std::vector<std::vector<int>> Partition::FMPartition(std::vector<std::vector<int>>& graph) {
+std::vector<std::vector<int>> Partition::FMPartition(std::vector<std::vector<int>> &graph)
+{
 	std::vector<std::vector<int>> partition;
 	std::vector<int> tpA;
 	std::vector<int> tpB;
-	POINTER_ARRAY pointer_array_global(graph);
+	NodeArray nodearray_global(graph);
 	int currentBest = std::numeric_limits<int>::max();
-//	pointer_array_global.init_half();
-	pointer_array_global.init_even();
-	pointer_array_global.updateGain();
-	for (int loop = 0;loop < MaxIteration;loop++) {
+	nodearray_global.init_half();
+	// nodearray_global.init_even();
+	nodearray_global.updateGain();
+	for (int loop = 0; loop < MaxIteration; loop++)
+	{
 		int flag = 0;
 		Bucket bu;
-		POINTER_ARRAY pointer_array_local;
-		pointer_array_local.copy(pointer_array_global);
-		bu.load(pointer_array_local);
-		OneSwap(bu, pointer_array_local, pointer_array_global,currentBest);
-		if (currentBest > pointer_array_global.cutSize()) {
-			currentBest = pointer_array_global.cutSize();
+		NodeArray nodearray_local;
+		nodearray_local.copy(nodearray_global);
+		bu.load(nodearray_local);
+		OneSwap(bu, nodearray_local, nodearray_global, currentBest);
+		if (currentBest > nodearray_global.cutSize())
+		{
+			currentBest = nodearray_global.cutSize();
 			flag = 1;
 		}
-		std::cout << "iteration " << loop << ": Cut Size = " << pointer_array_global.cutSize() << std::endl;
-		for (int i = 0;i < pointer_array_local.data_array.size();i++) {
-			free(pointer_array_local.data_array[i]);
+		std::cout << "iteration " << loop << ": Cut Size = " << nodearray_global.cutSize() << std::endl;
+		for (int i = 0; i < nodearray_local.data_array.size(); i++)
+		{
+			free(nodearray_local.data_array[i]);
 		}
-		if (flag == 0) {
+		if (flag == 0)
+		{
 			break;
 		}
 	}
 
-	std::cout << "FM algorithm done. " << "Cut Size = " << pointer_array_global.cutSize() << std::endl;
-	std::cout << "Partition Result: "<<std::endl;
-	std::cout << "A Part: ";
-	for (int i = 0;i < pointer_array_global.data_array.size();i++) {
-		if (pointer_array_global.data_array[i]->Node_part == A_PART) {
-			std::cout << pointer_array_global.data_array[i]->Node_index<<" ";
-			tpA.push_back(pointer_array_global.data_array[i]->Node_index);
+	std::cout << "FM Partition done. " << "Cut Size = " << nodearray_global.cutSize() << std::endl;
+	std::cout << "Partition Result: " << std::endl;
+	std::cout << "A Part: " << std::endl;
+	for (int i = 0; i < nodearray_global.data_array.size(); i++)
+	{
+		if (nodearray_global.data_array[i]->Node_part == A_PART)
+		{
+			std::cout << nodearray_global.data_array[i]->Node_index << " ";
+			tpA.push_back(nodearray_global.data_array[i]->Node_index);
 		}
 	}
 	std::cout << std::endl;
-	std::cout << "B Part: ";
-	for (int i = 0;i < pointer_array_global.data_array.size();i++) {
-		if (pointer_array_global.data_array[i]->Node_part == B_PART) {
-			std::cout << pointer_array_global.data_array[i]->Node_index<<" ";
-			tpB.push_back(pointer_array_global.data_array[i]->Node_index);
+	std::cout << "B Part: " << std::endl;
+	for (int i = 0; i < nodearray_global.data_array.size(); i++)
+	{
+		if (nodearray_global.data_array[i]->Node_part == B_PART)
+		{
+			std::cout << nodearray_global.data_array[i]->Node_index << " ";
+			tpB.push_back(nodearray_global.data_array[i]->Node_index);
 		}
 	}
 	partition.push_back(tpA);
@@ -97,71 +110,85 @@ std::vector<std::vector<int>> Partition::FMPartition(std::vector<std::vector<int
 	return partition;
 }
 
-std::vector<std::vector<int>> Partition::FMPartitionRandPoint(std::vector<std::vector<int>> &graph) {
+std::vector<std::vector<int>> Partition::FMPartitionRandPoint(std::vector<std::vector<int>> &graph)
+{
 	int min_cut_size = std::numeric_limits<int>::max();
 	std::vector<std::vector<int>> partition;
 	std::vector<int> tpA;
 	std::vector<int> tpB;
-	for (int l = 0;l < 5;l++) {
-		POINTER_ARRAY pointer_array_global(graph);
+	for (int l = 0; l < 5; l++)
+	{
+		NodeArray nodearray_global(graph);
 
-		std::cout << "FM " << l << std::endl;
+		std::cout << "FM Rand Point: " << l << std::endl;
 		int currentBest = std::numeric_limits<int>::max();
-		//������ֻ��ڵ㣬ȷ����ʼ�ָ��
-		pointer_array_global.init_rand();
-		pointer_array_global.updateGain();
-		//ѭ������FM�㷨
-		for (int loop = 0;loop < MaxIteration;loop++) {
+
+		nodearray_global.init_rand();
+		nodearray_global.updateGain();
+
+		for (int loop = 0; loop < MaxIteration; loop++)
+		{
 			int flag = 0;
 			Bucket bu;
-			POINTER_ARRAY pointer_array_local;
-			pointer_array_local.copy(pointer_array_global);
-			//��ʼ��Ͱ�ṹ
-			bu.load(pointer_array_local);
-			OneSwap(bu, pointer_array_local, pointer_array_global, currentBest);
-			if (currentBest > pointer_array_global.cutSize()) {
-				currentBest = pointer_array_global.cutSize();
+			NodeArray nodearray_local;
+			nodearray_local.copy(nodearray_global);
+
+			bu.load(nodearray_local);
+			OneSwap(bu, nodearray_local, nodearray_global, currentBest);
+			if (currentBest > nodearray_global.cutSize())
+			{
+				currentBest = nodearray_global.cutSize();
 				flag = 1;
 			}
-			std::cout << "iteration " << loop << ": Cut Size = " << pointer_array_global.cutSize() << std::endl;
-			for (int i = 0;i < pointer_array_local.data_array.size();i++) {
-				free(pointer_array_local.data_array[i]);
+			std::cout << "iteration " << loop << ": Cut Size = " << nodearray_global.cutSize() << std::endl;
+			for (int i = 0; i < nodearray_local.data_array.size(); i++)
+			{
+				free(nodearray_local.data_array[i]);
 			}
-			if (flag == 0) {
+			if (flag == 0)
+			{
 				break;
 			}
 		}
 
-		std::cout << "FM algorithm " << l << " done. " << "Cut Size = " << pointer_array_global.cutSize() << std::endl;
+		std::cout << "FM Partition " << l << " done. " << "Cut Size = " << nodearray_global.cutSize() << std::endl;
 		std::cout << "Partition Result: " << std::endl;
-		std::cout << "A Part: ";
-		for (int i = 0;i < pointer_array_global.data_array.size();i++) {
-			if (pointer_array_global.data_array[i]->Node_part == A_PART) {
-				std::cout << pointer_array_global.data_array[i]->Node_index << " ";
+		std::cout << "A Part: " << std::endl;
+		for (int i = 0; i < nodearray_global.data_array.size(); i++)
+		{
+			if (nodearray_global.data_array[i]->Node_part == A_PART)
+			{
+				std::cout << nodearray_global.data_array[i]->Node_index << " ";
 			}
 		}
 		std::cout << std::endl;
-		std::cout << "B Part: ";
-		for (int i = 0;i < pointer_array_global.data_array.size();i++) {
-			if (pointer_array_global.data_array[i]->Node_part == B_PART) {
-				std::cout << pointer_array_global.data_array[i]->Node_index << " ";
+		std::cout << "B Part: " << std::endl;
+		for (int i = 0; i < nodearray_global.data_array.size(); i++)
+		{
+			if (nodearray_global.data_array[i]->Node_part == B_PART)
+			{
+				std::cout << nodearray_global.data_array[i]->Node_index << " ";
 			}
 		}
-		if (min_cut_size > pointer_array_global.cutSize()) {
-			min_cut_size = pointer_array_global.cutSize();
+		if (min_cut_size > nodearray_global.cutSize())
+		{
+			min_cut_size = nodearray_global.cutSize();
 			tpA.clear();
 			tpB.clear();
-			for (int i = 0;i < pointer_array_global.data_array.size();i++) {
-				if (pointer_array_global.data_array[i]->Node_part == A_PART) {
-					tpA.push_back(pointer_array_global.data_array[i]->Node_index);
+			for (int i = 0; i < nodearray_global.data_array.size(); i++)
+			{
+				if (nodearray_global.data_array[i]->Node_part == A_PART)
+				{
+					tpA.push_back(nodearray_global.data_array[i]->Node_index);
 				}
 			}
-			for (int i = 0;i < pointer_array_global.data_array.size();i++) {
-				if (pointer_array_global.data_array[i]->Node_part == B_PART) {
-					tpB.push_back(pointer_array_global.data_array[i]->Node_index);
+			for (int i = 0; i < nodearray_global.data_array.size(); i++)
+			{
+				if (nodearray_global.data_array[i]->Node_part == B_PART)
+				{
+					tpB.push_back(nodearray_global.data_array[i]->Node_index);
 				}
 			}
-			
 		}
 		std::cout << std::endl;
 	}

@@ -1,7 +1,6 @@
 #include <iostream>
 #include "parser.h"
-#include "PhysicalDesign.h"
-
+#include "FMPartition.h"
 
 int main(int argc, char **argv)
 {
@@ -21,17 +20,42 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    PhysicalDesign PD(p);
+    std::vector<std::vector<int>> graph = p.getGraph();
+    Partition pt;
 
-    PD.filename = filename;
     if (command == "-single")
     {
-        PD.FMPartitionSingle();
+        pt.partition = pt.FMPartition(graph);
     }
     else if (command == "-rand")
     {
-        PD.FMPartitionRand();
+        pt.partition = pt.FMPartitionRandPoint(graph);
+    }
+    else
+    {
+        std::cout << "Command Option Error" << std::endl;
+        std::cout << "Use: " << argv[0] << "command[-single][-rand]" << " filename" << std::endl;
+        return -1;
     }
 
-    PD.outputfile();
+    std::string filepath(filename + "out.txt");
+    std::ofstream output_file(filepath);
+    if (!output_file.is_open())
+    {
+        std::cout << "Failed to open output file!" << std::endl;
+        return -1;
+    }
+
+    for (auto i : pt.partition)
+    {
+        output_file << "partition size: " << i.size() << ": " << std::endl;
+        for (auto value : i)
+            output_file << value << " ";
+        output_file << std::endl;
+    }
+    output_file << "cut size: " << pt.mincutsize << std::endl;
+
+    output_file.close();
+    std::cout << std::endl;
+    std::cout << "Output file: " << filepath << std::endl;
 }
